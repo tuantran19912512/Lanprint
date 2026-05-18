@@ -23,35 +23,43 @@ def kiem_tra_quyen_quan_tri_vien():
         return False
 
 def doc_du_lieu_tu_json():
-    # Link JSON trên Cloud của bạn
     url_github = "https://raw.githubusercontent.com/tuantran19912512/Lanprint/refs/heads/main/ma_loi_chia_se_lan_v2.json"
     file_cuc_bo = "ma_loi_chia_se_lan_v2.json"
     
-    # 1. Cố gắng tải dữ liệu từ GitHub trước
+    # BỎ QUA KIỂM TRA CHỨNG CHỈ SSL ĐỂ TRÁNH LỖI TRÊN WINDOWS
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
+    # 1. Thử tải dữ liệu từ GitHub
     try:
-        # Thêm Header User-Agent để tránh GitHub chặn request tự động
         yeu_cau = urllib.request.Request(url_github, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(yeu_cau, timeout=7) as phan_hoi:
+        with urllib.request.urlopen(yeu_cau, timeout=10, context=ctx) as phan_hoi:
             du_lieu_raw = phan_hoi.read().decode('utf-8')
             du_lieu = json.loads(du_lieu_raw)
+            # hop_thoai_thong_bao.showinfo("Thành công", "Đã tải dữ liệu mới nhất từ GitHub!")
             return du_lieu.get("danh_sach_ma_loi", [])
             
-    except Exception as loi_mang:
-        # 2. Nếu không có mạng hoặc lỗi tải, chuyển sang đọc file Offline dự phòng
-        if he_dieu_hanh.path.exists(file_cuc_bo):
-            try:
-                with open(file_cuc_bo, "r", encoding="utf-8") as f:
-                    du_lieu = json.load(f)
-                    return du_lieu.get("danh_sach_ma_loi", [])
-            except Exception:
-                pass # Lỗi file local thì bỏ qua để xuống thông báo lỗi cuối cùng
-                
-        # 3. Nếu cả Online và Offline đều thất bại
-        hop_thoai_thong_bao.showerror(
-            "Lỗi Dữ Liệu", 
-            f"Không thể tải danh sách lỗi từ Cloud.\nChi tiết mã lỗi mạng: {loi_mang}\n\nĐồng thời không tìm thấy file dữ liệu dự phòng (Offline) trên máy!"
-        )
-        return []
+    except urllib.error.HTTPError as e:
+        loi = f"Lỗi HTTP {e.code}: "
+        if e.code == 404:
+            loi += "Không tìm thấy file (Vui lòng kiểm tra lại link hoặc chuyển Repo GitHub sang PUBLIC)."
+        hop_thoai_thong_bao.showwarning("Lỗi kéo dữ liệu từ GitHub", loi + f"\n\nĐang chuyển sang đọc file Offline ở máy...")
+        
+    except Exception as e:
+        hop_thoai_thong_bao.showwarning("Lỗi mạng", f"Lỗi: {e}\n\nĐang chuyển sang đọc file Offline ở máy...")
+
+    # 2. Đọc dự phòng từ file Offline nếu GitHub lỗi
+    if he_dieu_hanh.path.exists(file_cuc_bo):
+        try:
+            with open(file_cuc_bo, "r", encoding="utf-8") as f:
+                du_lieu = json.load(f)
+                return du_lieu.get("danh_sach_ma_loi", [])
+        except Exception:
+            pass
+            
+    hop_thoai_thong_bao.showerror("Lỗi Dữ Liệu", "Không thể tải từ GitHub và cũng không tìm thấy file dự phòng trên máy!")
+    return []
 
 def khoi_dong_giao_dien():
     danh_sach_loi_json = doc_du_lieu_tu_json()
