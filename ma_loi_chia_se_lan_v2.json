@@ -224,6 +224,23 @@
                 "net stop spooler",
                 "net start spooler"
             ]
+        },
+		{
+            "ma_loi": "Canon LBP2900/3300 (Trùng Port - CÓ CHỌN LỌC)",
+            "ten_loi": "Lỗi Communication (Dò tìm & Chọn máy in để fix)",
+            "phan_loai": "Chia sẻ Máy in",
+            "muc_do": "Cao",
+            "mo_ta": "Tool sẽ hiển thị danh sách toàn bộ máy in. Bạn chọn đúng máy bị lỗi, tool sẽ tự dọn Spooler, reset USB Printing Support và xóa Port trùng lặp CỦA RIÊNG MÁY ĐÓ.",
+            "nguyen_nhan": [
+                "Cơ chế Plug and Play của Windows bị lỗi với driver CAPT, đẻ ra cổng ảo trùng lặp."
+            ],
+            "giai_phap": [
+                "Hiển thị bảng giao diện Native của Windows để chọn máy in.",
+                "Tự động xóa port lỗi và cấu hình lại thiết bị ngầm qua PowerShell."
+            ],
+            "lenh_thuc_thi": [
+                "powershell -Command \"$may_in = Get-Printer | Out-GridView -Title 'CHỌN MÁY IN ĐANG BỊ LỖI TRÙNG PORT (Bấm OK ở góc dưới để tiếp tục)' -PassThru; if ($may_in) { Stop-Service -Name Spooler -Force; Remove-Item -Path \\\"$env:windir\\System32\\spool\\PRINTERS\\*.*\\\" -Force -Recurse; Start-Service -Name Spooler; $port = $may_in.PortName; Get-PnpDevice -Class USB -ErrorAction SilentlyContinue | Where-Object {$_.FriendlyName -match 'Printing Support'} | Disable-PnpDevice -Confirm:$false; if ($port -match '^USB' -and (Get-PrinterPort -Name $port -ErrorAction SilentlyContinue).Description -match 'Local Port') { Remove-PrinterPort -Name $port -ErrorAction SilentlyContinue }; Get-PnpDevice -Class USB -ErrorAction SilentlyContinue | Where-Object {$_.FriendlyName -match 'Printing Support'} | Enable-PnpDevice -Confirm:$false; pnputil /scan-devices; Write-Host 'Da xu ly xong!' }\""
+            ]
         }
     ]
 }
