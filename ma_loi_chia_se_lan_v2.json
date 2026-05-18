@@ -1,0 +1,229 @@
+{
+    "tieu_de": "Cơ sở dữ liệu mã lỗi chia sẻ File và Máy in trong mạng LAN Windows (Hỗ trợ Tự động Thực thi)",
+    "phien_ban": "2.0",
+    "ngay_cap_nhat": "2026-05-18",
+    "danh_sach_ma_loi": [
+        {
+            "ma_loi": "0x80070035",
+            "ten_loi": "Không tìm thấy đường dẫn mạng (Network Path Not Found)",
+            "phan_loai": "Chia sẻ File/Thư mục",
+            "muc_do": "Cao",
+            "mo_ta": "Hệ thống không tìm thấy đường dẫn mạng LAN đến thư mục đang chia sẻ.",
+            "nguyen_nhan": [
+                "Tính năng Network Discovery hoặc File and Printer Sharing đang bị tắt ở máy nguồn hoặc máy đích.",
+                "Sai địa chỉ IP hoặc sai tên máy tính (Computer Name).",
+                "Tường lửa (Windows Firewall) hoặc phần mềm diệt virus chặn cổng giao thức SMB (cổng 445)."
+            ],
+            "giai_phap": [
+                "Vào Control Panel -> Network and Sharing Center -> Advanced sharing settings, bật 'Turn on network discovery' và 'Turn on file and printer sharing'.",
+                "Kiểm tra service 'Workstation', 'Computer Browser', 'Server' xem đã chạy (Running) chưa.",
+                "Mở cổng tường lửa cho phép chia sẻ file và máy in."
+            ],
+            "lenh_thuc_thi": [
+                "netsh advfirewall firewall set rule group=\"File and Printer Sharing\" new enable=Yes",
+                "sc config LanmanWorkstation start=auto",
+                "net start LanmanWorkstation"
+            ]
+        },
+        {
+            "ma_loi": "0x800704cf",
+            "ten_loi": "Không thể truy cập vị trí mạng (Network Location Cannot Be Reached)",
+            "phan_loai": "Chia sẻ File & Máy in",
+            "muc_do": "Trung bình",
+            "mo_ta": "Lỗi xảy ra khi máy tính không thể truy cập vào mạng hoặc địa chỉ mạng được chỉ định.",
+            "nguyen_nhan": [
+                "Lỗi Driver card mạng (Network Adapter) bị xung đột hoặc lỗi thời.",
+                "Lỗi cấu hình giao thức TCP/IP hoặc DNS trên máy trạm.",
+                "Tính năng Client for Microsoft Networks chưa được kích hoạt."
+            ],
+            "giai_phap": [
+                "Gỡ driver card mạng trong Device Manager và tiến hành scan phần cứng để tự động cài lại.",
+                "Làm mới (flush) DNS và đặt lại IP hệ thống."
+            ],
+            "lenh_thuc_thi": [
+                "ipconfig /flushdns",
+                "netsh int ip reset"
+            ]
+        },
+        {
+            "ma_loi": "0x80070005",
+            "ten_loi": "Bị từ chối quyền truy cập (Access Denied)",
+            "phan_loai": "Chia sẻ File/Thư mục",
+            "muc_do": "Cao",
+            "mo_ta": "Quyền truy cập bị từ chối. Người dùng không có đủ thẩm quyền để vào thư mục chia sẻ.",
+            "nguyen_nhan": [
+                "Thư mục chia sẻ chưa cấp quyền cho tài khoản 'Everyone'.",
+                "Chưa tắt tính năng 'Password protected sharing' (Yêu cầu mật khẩu khi truy cập)."
+            ],
+            "giai_phap": [
+                "Chuột phải thư mục -> Properties -> tab Sharing -> Permissions -> Thêm 'Everyone' và cấp quyền Full Control/Read.",
+                "Tắt 'Password protected sharing' qua Control Panel hoặc can thiệp Registry để cho phép tài khoản trống mật khẩu truy cập."
+            ],
+            "lenh_thuc_thi": [
+                "reg add \"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa\" /v limitblankpassworduse /t REG_DWORD /d 0 /f"
+            ]
+        },
+        {
+            "ma_loi": "0x80004005",
+            "ten_loi": "Lỗi không xác định (Unspecified Error)",
+            "phan_loai": "Chia sẻ File/Thư mục",
+            "muc_do": "Cao",
+            "mo_ta": "Lỗi không xác định khi kết nối mạng LAN, thường liên quan đến cơ chế xác thực hoặc phiên bản SMB.",
+            "nguyen_nhan": [
+                "Máy chủ sử dụng giao thức SMBv1 (Windows 7/Server cũ) trong khi máy trạm Windows 10/11 đã mặc định tắt SMBv1 vì lý do bảo mật."
+            ],
+            "giai_phap": [
+                "Bật tính năng 'SMB 1.0/CIFS File Sharing Support' trong Windows Features (Yêu cầu khởi động lại máy)."
+            ],
+            "lenh_thuc_thi": [
+                "dism /online /norestart /enable-feature /featurename:SMB1Protocol"
+            ]
+        },
+        {
+            "ma_loi": "0x0000011b (Tại máy chủ)",
+            "ten_loi": "Lỗi kết nối máy in (Operation Failed / PrintNightmare)",
+            "phan_loai": "Chia sẻ Máy in",
+            "muc_do": "Rất Cao",
+            "mo_ta": "Mã lỗi kinh điển khi kết nối máy in chia sẻ qua mạng LAN trên Windows 10/11 sau các bản cập nhật bảo mật CVE-2021-34481.",
+            "nguyen_nhan": [
+                "Cơ chế bảo mật RPC mới của Microsoft thắt chặt quyền kết nối từ xa đến máy in chung (Point and Print Restriction)."
+            ],
+            "giai_phap": [
+                "Tắt cơ chế bảo mật RPC Auth trong Registry hệ thống ở máy chủ và khởi động lại dịch vụ Print Spooler."
+            ],
+            "lenh_thuc_thi": [
+                "reg add \"HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Print\" /v RpcAuthnLevelPrivacyEnabled /t REG_DWORD /d 0 /f",
+                "net stop spooler",
+                "net start spooler"
+            ]
+        },
+        {
+            "ma_loi": "0x00000709",
+            "ten_loi": "Lỗi đặt máy in mặc định (Operation Could Not Be Completed)",
+            "phan_loai": "Chia sẻ Máy in",
+            "muc_do": "Cao",
+            "mo_ta": "Không thể thiết lập máy in mặc định (Default Printer) hoặc không thể nhận diện đúng tên máy in trong mạng.",
+            "nguyen_nhan": [
+                "Lỗi ghi đè thông tin cấu hình máy in cũ trong registry hệ thống."
+            ],
+            "giai_phap": [
+                "Xóa các chuỗi giá trị cũ như 'Device', 'LegacyDefaultPrinterMode' trong Registry ở User hiện tại."
+            ],
+            "lenh_thuc_thi": [
+                "reg delete \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\" /v Device /f",
+                "reg delete \"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\" /v LegacyDefaultPrinterMode /f"
+            ]
+        },
+        {
+            "ma_loi": "0x00000bcb",
+            "ten_loi": "Lỗi cài đặt Driver máy in (Cannot Find a Suitable Printer Driver)",
+            "phan_loai": "Chia sẻ Máy in",
+            "muc_do": "Trung bình",
+            "mo_ta": "Máy trạm không thể tải hoặc cài đặt driver máy in phù hợp từ máy chủ chia sẻ xuống.",
+            "nguyen_nhan": [
+                "Bất đồng bộ kiến trúc hệ điều hành (32-bit vs 64-bit).",
+                "Chính sách Group Policy ngăn chặn cài đặt driver không có chữ ký số hoặc yêu cầu quyền Admin."
+            ],
+            "giai_phap": [
+                "Bỏ giới hạn 'RestrictDriverInstallationToAdministrators' thông qua Registry."
+            ],
+            "lenh_thuc_thi": [
+                "reg add \"HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Printers\\PointAndPrint\" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 0 /f"
+            ]
+        },
+        {
+            "ma_loi": "Lỗi mạng 1231",
+            "ten_loi": "Không hiển thị máy tính trong mạng (The Network Location Cannot Be Reached)",
+            "phan_loai": "Chia sẻ File/Thư mục",
+            "muc_do": "Trung bình",
+            "mo_ta": "Hệ thống không thể ping hoặc duyệt danh sách máy tính cùng Workgroup trong mạng nội bộ.",
+            "nguyen_nhan": [
+                "Service 'Function Discovery Resource Publication' (chịu trách nhiệm hiển thị máy tính trong sơ đồ mạng) chưa được chạy."
+            ],
+            "giai_phap": [
+                "Chuyển Startup type của dịch vụ Function Discovery Resource Publication thành 'Automatic' và khởi động nó lên."
+            ],
+            "lenh_thuc_thi": [
+                "sc config FDResPub start=auto",
+                "net start FDResPub"
+            ]
+        },
+		{
+            "ma_loi": "Lỗi SMB Signature",
+            "ten_loi": "Không thể truy cập ổ cứng mạng / NAS (SMB Security Signature)",
+            "phan_loai": "Chia sẻ File/Thư mục",
+            "muc_do": "Trung bình",
+            "mo_ta": "Liên tục bị từ chối truy cập hoặc báo lỗi khi kết nối vào thiết bị NAS, máy chủ Linux (Samba) hoặc Windows cũ.",
+            "nguyen_nhan": [
+                "Tính năng RequireSecuritySignature đang được bật (True) trên hệ thống Windows, khiến máy trạm từ chối kết nối với các máy chủ không hỗ trợ chữ ký bảo mật SMB."
+            ],
+            "giai_phap": [
+                "Sử dụng PowerShell để vô hiệu hóa bắt buộc chữ ký bảo mật SMB (RequireSecuritySignature) từ phía máy khách."
+            ],
+            "lenh_thuc_thi": [
+                "powershell -Command \"Set-SmbClientConfiguration -RequireSecuritySignature $false -Force\""
+            ]
+        },
+		{
+            "ma_loi": "0x00000012",
+            "ten_loi": "Lỗi kết nối máy in (Sai Credential / Access Denied)",
+            "phan_loai": "Chia sẻ Máy in",
+            "muc_do": "Cao",
+            "mo_ta": "Không thể kết nối máy in mạng do máy trạm lưu sai thông tin đăng nhập của máy chủ, thường gặp trên Windows 11 24H2.",
+            "nguyen_nhan": [
+                "Lưu sai tài khoản (Credential) mạng.",
+                "Lỗi phân quyền Password Protected Sharing."
+            ],
+            "giai_phap": [
+                "Công cụ sẽ mở Credential Manager. Bạn cần xóa IP của máy chủ đi.",
+                "Sau khi xóa, công cụ sẽ tự động Restart dịch vụ Print Spooler."
+            ],
+            "lenh_thuc_thi": [
+                "control keymgr.dll",
+                "net stop spooler",
+                "net start spooler"
+            ]
+        },
+		{
+            "ma_loi": "Lỗi gọi Tên Máy",
+            "ten_loi": "Không tìm thấy tên máy (Vào IP được, Tên báo lỗi)",
+            "phan_loai": "Chia sẻ File & Máy in",
+            "muc_do": "Trung bình",
+            "mo_ta": "Khi gõ \\\\ten_may_chu thì hiện bảng thông báo lỗi không tìm thấy đường dẫn chỉ có nút OK, nhưng truy cập bằng \\\\Dia_chi_IP thì vẫn bình thường.",
+            "nguyen_nhan": [
+                "Lỗi bộ nhớ đệm phân giải tên miền (DNS Cache) hoặc NetBIOS bị đầy/lưu sai.",
+                "Dịch vụ hỗ trợ nhận diện tên máy (TCP/IP NetBIOS Helper) đang bị tắt."
+            ],
+            "giai_phap": [
+                "Công cụ sẽ tự động xóa sạch rác bộ nhớ đệm DNS và NetBIOS.",
+                "Tự động cấu hình và khởi động lại dịch vụ TCP/IP NetBIOS Helper (lmhosts)."
+            ],
+            "lenh_thuc_thi": [
+                "ipconfig /flushdns",
+                "nbtstat -R",
+                "sc config lmhosts start=auto",
+                "net stop lmhosts",
+                "net start lmhosts"
+            ]
+        },
+		{
+            "ma_loi": "0x000003e3 (Tại Máy Chủ)",
+            "ten_loi": "Sửa lỗi 3e3 LQ310 từ phía Máy Chủ (PrinterDriverAttributes)",
+            "phan_loai": "Chia sẻ Máy in",
+            "muc_do": "Cao",
+            "mo_ta": "LƯU Ý: Chạy lệnh này trên MÁY CHỦ (máy cắm trực tiếp cáp LQ310). Công cụ sẽ ép thuộc tính Driver để máy trạm có thể kéo về qua mạng.",
+            "nguyen_nhan": [
+                "Driver Type 3 của Epson LQ-310 không tương thích với cơ chế bảo mật Package-aware mới của Windows."
+            ],
+            "giai_phap": [
+                "Đổi giá trị PrinterDriverAttributes trong Registry thành 1.",
+                "Khởi động lại Print Spooler để áp dụng cấu hình."
+            ],
+            "lenh_thuc_thi": [
+                "reg add \"HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Print\\Environments\\Windows x64\\Drivers\\Version-3\\EPSON LQ-310 ESC/P2\" /v PrinterDriverAttributes /t REG_DWORD /d 1 /f",
+                "net stop spooler",
+                "net start spooler"
+            ]
+        }
+    ]
+}
