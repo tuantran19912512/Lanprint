@@ -1,3 +1,4 @@
+import ssl
 import json
 import tkinter as giao_dien_do_hoa
 from tkinter import messagebox as hop_thoai_thong_bao
@@ -5,9 +6,8 @@ import subprocess as tien_trinh_con
 import ctypes as thu_vien_c_co_ban
 import sys as he_thong_may_tinh
 import os as he_dieu_hanh
-import urllib.request # Thư viện gọi API/Link Web
+import urllib.request
 import urllib.error
-import ssl
 
 def chay_lenh_cmd(cau_lenh):
     try:
@@ -31,25 +31,22 @@ def doc_du_lieu_tu_json():
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
 
-    # 1. Thử tải dữ liệu từ GitHub
     try:
         yeu_cau = urllib.request.Request(url_github, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(yeu_cau, timeout=10, context=ctx) as phan_hoi:
             du_lieu_raw = phan_hoi.read().decode('utf-8')
             du_lieu = json.loads(du_lieu_raw)
-            # hop_thoai_thong_bao.showinfo("Thành công", "Đã tải dữ liệu mới nhất từ GitHub!")
             return du_lieu.get("danh_sach_ma_loi", [])
             
-    except urllib.error.HTTPError as e:
-        loi = f"Lỗi HTTP {e.code}: "
-        if e.code == 404:
-            loi += "Không tìm thấy file (Vui lòng kiểm tra lại link hoặc chuyển Repo GitHub sang PUBLIC)."
-        hop_thoai_thong_bao.showwarning("Lỗi kéo dữ liệu từ GitHub", loi + f"\n\nĐang chuyển sang đọc file Offline ở máy...")
+    except urllib.error.HTTPError as loi_http:
+        chuoi_loi = f"Lỗi HTTP {loi_http.code}: "
+        if loi_http.code == 404:
+            chuoi_loi += "Không tìm thấy file (Vui lòng kiểm tra lại link hoặc chuyển Repo GitHub sang PUBLIC)."
+        hop_thoai_thong_bao.showwarning("Lỗi kéo dữ liệu từ GitHub", chuoi_loi + f"\n\nĐang chuyển sang đọc file Offline ở máy...")
         
-    except Exception as e:
-        hop_thoai_thong_bao.showwarning("Lỗi mạng", f"Lỗi: {e}\n\nĐang chuyển sang đọc file Offline ở máy...")
+    except Exception as loi_mang:
+        hop_thoai_thong_bao.showwarning("Lỗi mạng", f"Lỗi: {loi_mang}\n\nĐang chuyển sang đọc file Offline ở máy...")
 
-    # 2. Đọc dự phòng từ file Offline nếu GitHub lỗi
     if he_dieu_hanh.path.exists(file_cuc_bo):
         try:
             with open(file_cuc_bo, "r", encoding="utf-8") as f:
@@ -66,7 +63,6 @@ def khoi_dong_giao_dien():
     if not danh_sach_loi_json:
         he_thong_may_tinh.exit()
 
-    # Bảng màu Dark Mode
     mau_nen_chinh = "#1E1E1E"
     mau_nen_phu = "#252526"
     mau_chu_tieu_de = "#FFFFFF"
@@ -86,11 +82,9 @@ def khoi_dong_giao_dien():
                                           font=("Segoe UI", 14, "bold"), bg=mau_nen_chinh, fg=mau_chu_tieu_de, pady=15)
     nhan_tieu_de.pack()
 
-    # KHUNG CHỨA CHECKBOX CÓ THANH CUỘN (SCROLLBAR)
     khung_danh_sach_bao_ngoai = giao_dien_do_hoa.Frame(cua_so_chinh, bg=mau_nen_phu, bd=0, highlightthickness=1, highlightbackground="#333333")
     khung_danh_sach_bao_ngoai.pack(fill="x", padx=25, pady=5)
     
-    # Thêm Canvas để có thể cuộn danh sách lỗi nếu sau này JSON quá dài
     canvas_danh_sach = giao_dien_do_hoa.Canvas(khung_danh_sach_bao_ngoai, bg=mau_nen_phu, highlightthickness=0, height=250)
     scrollbar_danh_sach = giao_dien_do_hoa.Scrollbar(khung_danh_sach_bao_ngoai, orient="vertical", command=canvas_danh_sach.yview)
     khung_chua_check = giao_dien_do_hoa.Frame(canvas_danh_sach, bg=mau_nen_phu)
@@ -104,6 +98,22 @@ def khoi_dong_giao_dien():
     
     canvas_danh_sach.pack(side="left", fill="both", expand=True, padx=5, pady=5)
     scrollbar_danh_sach.pack(side="right", fill="y")
+
+    # --- TÍNH NĂNG CUỘN BẰNG CON LĂN CHUỘT ---
+    def cuon_bang_chuot(su_kien):
+        # Chia cho 120 là chuẩn vòng quay chuột của Windows
+        canvas_danh_sach.yview_scroll(int(-1 * (su_kien.delta / 120)), "units")
+
+    def bat_cuon(su_kien):
+        cua_so_chinh.bind_all("<MouseWheel>", cuon_bang_chuot)
+
+    def tat_cuon(su_kien):
+        cua_so_chinh.unbind_all("<MouseWheel>")
+
+    # Chỉ khi rê chuột vào khu vực danh sách mới cho phép cuộn Canvas
+    khung_danh_sach_bao_ngoai.bind("<Enter>", bat_cuon)
+    khung_danh_sach_bao_ngoai.bind("<Leave>", tat_cuon)
+    # -----------------------------------------
 
     cac_bien_tich_chon = {}
 
@@ -122,7 +132,6 @@ def khoi_dong_giao_dien():
         nut_tich.pack(fill="x", padx=10, pady=2)
         cac_bien_tich_chon[ma_loi] = {"trang_thai": bien_trang_thai, "du_lieu": item}
 
-    # KHUNG HIỂN THỊ LOG
     khung_log = giao_dien_do_hoa.Frame(cua_so_chinh, bg=mau_nen_chinh)
     khung_log.pack(fill="both", expand=True, padx=25, pady=10)
     
@@ -169,8 +178,8 @@ def khoi_dong_giao_dien():
                     continue
                 
                 so_lenh_thanh_cong = 0
-                for index, lenh in enumerate(danh_sach_lenh, 1):
-                    ghi_log(f"  - Đang chạy lệnh {index}/{len(danh_sach_lenh)}: {lenh[:40]}...")
+                for chi_muc, lenh in enumerate(danh_sach_lenh, 1):
+                    ghi_log(f"  - Đang chạy lệnh {chi_muc}/{len(danh_sach_lenh)}: {lenh[:40]}...")
                     if chay_lenh_cmd(lenh):
                         so_lenh_thanh_cong += 1
                 
@@ -183,7 +192,6 @@ def khoi_dong_giao_dien():
         ghi_log("-" * 50)
         ghi_log("[*] TOÀN BỘ TIẾN TRÌNH ĐÃ HOÀN TẤT!")
 
-    # KHUNG NÚT BẤM
     khung_nut_bam = giao_dien_do_hoa.Frame(cua_so_chinh, bg=mau_nen_chinh)
     khung_nut_bam.pack(pady=15)
 
