@@ -241,6 +241,31 @@
             "lenh_thuc_thi": [
                 "powershell -Command \"$may_in = Get-Printer | Out-GridView -Title 'CHỌN MÁY IN ĐANG BỊ LỖI TRÙNG PORT (Bấm OK ở góc dưới để tiếp tục)' -PassThru; if ($may_in) { Stop-Service -Name Spooler -Force; Remove-Item -Path \\\"$env:windir\\System32\\spool\\PRINTERS\\*.*\\\" -Force -Recurse; Start-Service -Name Spooler; $port = $may_in.PortName; Get-PnpDevice -Class USB -ErrorAction SilentlyContinue | Where-Object {$_.FriendlyName -match 'Printing Support'} | Disable-PnpDevice -Confirm:$false; if ($port -match '^USB' -and (Get-PrinterPort -Name $port -ErrorAction SilentlyContinue).Description -match 'Local Port') { Remove-PrinterPort -Name $port -ErrorAction SilentlyContinue }; Get-PnpDevice -Class USB -ErrorAction SilentlyContinue | Where-Object {$_.FriendlyName -match 'Printing Support'} | Enable-PnpDevice -Confirm:$false; pnputil /scan-devices; Write-Host 'Da xu ly xong!' }\""
             ]
+        },
+		{
+            "ma_loi": "0x80070043 / 0x00000704",
+            "ten_loi": "Lỗi kết nối: Không tìm thấy Tên Mạng / Cổng In",
+            "phan_loai": "Chia sẻ File & Máy in",
+            "muc_do": "Trung bình",
+            "mo_ta": "Mã lỗi 0x80070043 hoặc 0x00000704 xuất hiện khi kết nối máy in/thư mục. Hệ thống không thể phân giải tên máy chủ thành IP, hoặc cổng máy in (Port) bị kẹt.",
+            "nguyen_nhan": [
+                "Dịch vụ hỗ trợ nhận diện tên máy (TCP/IP NetBIOS Helper) bị tắt hoặc bộ đệm DNS lưu sai.",
+                "Tiến trình Spooler bị kẹt thông tin Port mạng."
+            ],
+            "giai_phap": [
+                "Xóa sạch bộ nhớ đệm (Flush DNS) và làm mới NetBIOS.",
+                "Cấu hình tự động và khởi động lại dịch vụ TCP/IP NetBIOS Helper.",
+                "Reset bộ đệm máy in (Print Spooler) để nhận Port mới."
+            ],
+            "lenh_thuc_thi": [
+                "ipconfig /flushdns",
+                "nbtstat -R",
+                "sc config lmhosts start=auto",
+                "net stop lmhosts",
+                "net start lmhosts",
+                "net stop spooler",
+                "net start spooler"
+            ]
         }
     ]
 }
