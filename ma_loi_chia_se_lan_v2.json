@@ -266,6 +266,28 @@
                 "net stop spooler",
                 "net start spooler"
             ]
+        },
+		{
+            "ma_loi": "Lỗi LAN (Không Ping được)",
+            "ten_loi": "Cùng mạng LAN nhưng Ping không thấy nhau (Request Timed Out)",
+            "phan_loai": "Chia sẻ File & Máy in",
+            "muc_do": "Trung bình",
+            "mo_ta": "Hai máy tính cùng lớp mạng nhưng ping nhau báo Request Timed Out hoặc Destination Host Unreachable. Lỗi này thường do Modem/Router bị kẹt bảng định tuyến ARP.",
+            "nguyen_nhan": [
+                "Bảng định tuyến địa chỉ MAC (ARP Cache) trên cục Router bị treo hoặc lưu sai.",
+                "Bộ nhớ đệm ARP trên máy tính cục bộ bị lỗi xung đột IP."
+            ],
+            "giai_phap": [
+                "1. Công cụ sẽ xóa sạch hoàn toàn bảng ARP nội bộ trên máy.",
+                "2. Xóa Cache định tuyến IP.",
+                "3. Ép máy tính ngắt kết nối và xin cấp phát lại địa chỉ IP mới từ Modem để 'đánh thức' lại luồng mạng."
+            ],
+            "lenh_thuc_thi": [
+                "arp -d *",
+                "netsh interface ip delete arpcache",
+                "ipconfig /release",
+                "ipconfig /renew"
+            ]
         }
     ]
 }
